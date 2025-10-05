@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>UBC Radio 2025 — Pengumuman Seleksi</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body {
+  font-family: "Poppins", sans-serif;
+  background: url("Bac.png") center/cover no-repeat fixed;
+  height: 100vh;
+  overflow: hidden;
+  color: #fff;
+  position: relative;
+}
+
+/* 🌟 Gambar terbang di belakang */
+#floating-bg {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+.float-item {
+  position: absolute;
+  opacity: 0.85;
+  animation: floatMove linear infinite;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
+}
+@keyframes floatMove {
+  0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  50% { transform: translateY(40vh) rotate(180deg); }
+  100% { transform: translateY(-120px) rotate(360deg); opacity: 0; }
+}
+
+/* 🌫 Section */
+section {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex; justify-content: center; align-items: center;
+  flex-direction: column;
+  background: rgba(0,0,0,0.25);
+  transition: opacity .8s ease, transform .8s ease;
+  z-index: 2;
+}
+section.hidden {
+  opacity: 0; transform: scale(1.05);
+  pointer-events: none;
+}
+
+/* 🌤 Kotak input blur halus */
+.glass-box {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(6px);
+  border-radius: 16px;
+  padding: 30px 40px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  z-index: 3;
+}
+
+/* Tombol & input */
+button {
+  background: linear-gradient(135deg,#ff6699,#ff3366);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 24px;
+  margin-top: 16px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: transform .2s, background .3s;
+}
+button:hover {
+  transform: scale(1.05);
+  background: linear-gradient(135deg,#ff88aa,#ff4477);
+}
+input[type=text]{
+  padding:10px;width:260px;font-size:16px;
+  border:none;border-radius:8px;margin-top:10px;
+  background: rgba(255,255,255,0.2);
+  color:white;text-align:center;outline:none;
+}
+input::placeholder{color:#eee}
+
+/* 🎊 Emot jatuh */
+.emoji {
+  position: fixed;
+  top: -50px;
+  font-size: 26px;
+  opacity: 0.9;
+  animation: jatuhEmot linear forwards;
+  z-index: 10;
+  pointer-events: none;
+}
+@keyframes jatuhEmot {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  50% { transform: translateY(50vh) rotate(180deg); }
+  100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+}
+
+/* Popup */
+.popup {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  background: rgba(255,255,255,0.95);
+  border-radius: 16px;
+  padding: 25px 35px;
+  text-align: center;
+  box-shadow: 0 4px 25px rgba(0,0,0,0.3);
+  opacity: 0;
+  transition: all 0.4s ease;
+  z-index: 999;
+  max-width: 320px;
+  color: #333;
+}
+.popup.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+/* Sticky Note */
+.note {
+  position: fixed;
+  padding: 12px 16px;
+  background: #fff9a8;
+  color: #333;
+  border-radius: 6px;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+  transform: rotate(var(--rot)) scale(1);
+  opacity: 0;
+  animation: muncul 0.8s ease forwards;
+  z-index: 5;
+  max-width: 200px;
+  font-size: 14px;
+  word-wrap: break-word;
+}
+@keyframes muncul {
+  from { opacity: 0; transform: scale(0.7) rotate(var(--rot)); }
+  to { opacity: 1; transform: scale(1) rotate(var(--rot)); }
+}
+</style>
+</head>
+
+<body>
+<div id="floating-bg"></div>
+
+<!-- Halaman Cek -->
+<section id="cek">
+  <div class="glass-box">
+    <h2>Buktikan Nama Kalian!</h2>
+    <p>Nama Lengkap atau Nama Pendaftaran:</p>
+    <input id="namaInput" type="text" placeholder="Tuliskan nama Anda">
+    <button onclick="cekHasil()">Cek</button>
+    <div id="hasil" style="margin-top:15px;"></div>
+  </div>
+</section>
+
+<!-- Halaman Confess -->
+<section id="notePage" class="hidden">
+  <div class="glass-box">
+    <h2>💬 Confess Anonim</h2>
+    <textarea id="pesanInput" rows="3" placeholder="Tulis confess kamu di sini..." style="width:260px;"></textarea>
+    <button onclick="buatStickyNote()">Kirim</button>
+    <button onclick="hapusSemuaNotes()">🗑️ Clear Semua</button>
+    <button onclick="goto('cek')">Kembali</button>
+  </div>
+</section>
+
+<script>
+function goto(id){
+  document.querySelectorAll('section').forEach(s=>s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+/* === DATA LOLOS === */
+const tahap1 = {
+  "Fitra Naswa Ida Rosyanti":"AUV",
+  "Nafthaly Amira Zahra":"AUV",
+  "Moh Eri Herdiansyah":"AUV",
+  "Zahvia Fiqlia Achmad":"AUV",
+  "Lynda Rosalia":"AUV",
+  "Aulia Nisrina Mumtaz":"AUV",
+  "Aida Nur Azizah":"AUV",
+  "Nabila Harissa Putri":"AUV",
+  "Ali Syah Ramdhan":"AUV",
+  "Mursyid Albanni":"AUV",
+  "Else Nurista":"AUV",
+  "Nafisa Aliya Irfani":"AUV",
+  "Octaviana Archellyawati Suseno":"AUV",
+  "Carolina":"AUV",
+  "Nauva Aulia Sherlinda":"AUV",
+  "Argadius Krisna Santoso":"Public Relations",
+  "Audrey Tiza Talenta Putri":"Public Relations",
+  "Mohammad Sukadi":"Public Relations",
+  "Helen Ivana Gunawan":"Public Relations",
+  "Alfareta Freda Amelia":"Public Relations",
+  "Revina Laras Prasetya":"Public Relations",
+  "Rachmawati Fitrianingsih":"Public Relations",
+  "Zahrah Akhsani Jannah":"Public Relations",
+  "Novi Mau'idlotun Nasikhah":"Public Relations",
+  "Uswatun Fajar":"Public Relations",
+  "Aurora Ruli Eka Zahra Noviarum":"Public Relations",
+  "M. Valdo Indradana":"On Air",
+  "Ahmad Adnyana Darmalaksana":"On Air",
+  "Rachmat Hidayat":"On Air",
+  "Arawinda Anjali":"On Air",
+  "Nayla Putri Anggraini":"On Air",
+  "Apriska Ajeng Rosseyana":"On Air",
+  "Keyla Aurelia":"On Air",
+  "Neyza Ferdiana Rahman":"On Air",
+  "Callista Imanuella Sitanggang":"On Air",
+  "Iin Safira":"Off Air",
+  "Desnanta Astri Dwirani":"Off Air",
+  "Cahyanto":"Off Air",
+  "Niam Maulana Fiqri S.D":"Off Air",
+  "Keysha Nursabillah":"Off Air",
+  "Aurelie Shafina Novandi":"Off Air",
+  "Maljaul Abror":"Off Air",
+  "Mei Hernan Safaat":"HRD",
+  "Erlangga Ksatrya Pradana Fasa":"HRD",
+  "Dewi Satiti Ningrum":"HRD",
+  "Sri Adya Setyowati":"HRD",
+  "Nur Hidayati":"HRD",
+  "Nadia Rachmah Dani":"HRD",
+  "Dara Salsabila":"HRD",
+  "Addina Firli Munissaniyah":"HRD",
+  "Fistika Arsya Adiesta Maheswari":"HRD",
+  "Habibah Zahra Fitriyani":"HRD",
+  "Viona Deswita Maharani":"HRD",
+  "Kurnia Puji Lestari":"MEDCREV",
+  "Inayah Dharmastuti":"MEDCREV",
+  "Shoffi Istiana Adkha":"MEDCREV",
+  "Nailiy Nadhifah M.":"MEDCREV",
+  "Dian Khaerunia A.":"MEDCREV",
+  "Maya Nova Savira":"MEDCREV",
+  "Reno":"MEDCREV",
+  "Fattan Hafidz Adiyatma Azira":"MEDCREV",
+  "Shafiya Hana Madani":"MEDCREV",
+  "Nayla Sausan Ulayya Zain":"MEDCREV",
+  "Marsha Pangestu Sektiaji":"MEDCREV",
+  "Ken Nadia Yushisti":"MEDCREV",
+  "Rifki Dwi Lukmana":"MEDCREV"
+};
+
+let currentUser="";
+function capitalize(t){return t.split(" ").map(a=>a.charAt(0).toUpperCase()+a.slice(1).toLowerCase()).join(" ");}
+
+/* === CEK HASIL === */
+function cekHasil(){
+  const nama=document.getElementById("namaInput").value.trim();
+  const hasil=document.getElementById("hasil");
+  if(!nama){hasil.innerHTML="<span style='color:#ffaaaa'>Masukkan nama terlebih dahulu!</span>";return;}
+  const namaCap=capitalize(nama);
+  currentUser=namaCap;
+
+  if(tahap1[namaCap]){
+    showResult(true,namaCap,tahap1[namaCap]);
+  } else {
+    showResult(false,namaCap,"-");
+  }
+}
+
+/* === POPUP HASIL === */
+function showResult(lulus,nama,divisi){
+  spawnEmot(lulus ? ["🎮","⭐","🍄","💖","🎉"] : ["😢","💔","😭","☹️","🌧️"]);
+  const popup=document.createElement("div");
+  popup.className="popup";
+  popup.innerHTML = lulus ?
+  `<h2>🎉 Selamat ${nama}!</h2><p>Kamu diterima di divisi <b>${divisi}</b> 🎧</p><button onclick="tutupPopup(this)">Tulis Confess</button>` :
+  `<h2>😢 ${nama}</h2><p>Kamu belum diterima di UBC Radio tahun ini.<br><small>Tetap semangat dan coba lagi!</small></p><button onclick="tutupPopup(this)">Tulis Confess</button>`;
+  document.body.appendChild(popup);
+  setTimeout(()=>popup.classList.add("show"),100);
+}
+function tutupPopup(btn){
+  const popup=btn.parentElement;
+  popup.classList.remove("show");
+  setTimeout(()=>{popup.remove();goto('notePage');},500);
+}
+
+/* === EMOT JATUH === */
+function spawnEmot(list){
+  for(let i=0;i<25;i++){
+    const e=document.createElement('div');
+    e.className='emoji';
+    e.innerText=list[Math.floor(Math.random()*list.length)];
+    e.style.left=Math.random()*window.innerWidth+'px';
+    e.style.animationDuration=(3+Math.random()*3)+'s';
+    e.style.fontSize=(22+Math.random()*10)+'px';
+    document.body.appendChild(e);
+    setTimeout(()=>e.remove(),6000);
+  }
+}
+
+/* === CONFESS ANONIM === */
+function buatStickyNote(){
+  const text=document.getElementById('pesanInput').value.trim();
+  if(!text)return;
+  const note=document.createElement('div');
+  note.className='note';
+  note.innerText=`Anon:\n${text}`;
+  const x=Math.random()*(window.innerWidth-220);
+  const y=window.innerHeight-(60+Math.random()*100);
+  note.style.left=x+'px';
+  note.style.top=y+'px';
+  note.style.setProperty('--rot',(Math.random()*10-5)+'deg');
+  document.body.appendChild(note);
+  document.getElementById('pesanInput').value="";
+}
+function hapusSemuaNotes(){
+  document.querySelectorAll('.note').forEach(n=>{
+    n.style.opacity='0';setTimeout(()=>n.remove(),800);
+  });
+}
+
+/* 🌟 Gambar terbang */
+const imgList=["UBC.png","MEDCR.png","OFF AIR.png","ON AIR.png","PR.png","AUV.png","HRD.png","HATI1.png","HATI2.png","HATI3.png"];
+function spawnFloating(){
+  const bg=document.getElementById('floating-bg');
+  for(let i=0;i<10;i++){
+    const img=document.createElement('img');
+    img.src=imgList[Math.floor(Math.random()*imgList.length)];
+    img.className='float-item';
+    img.style.left=Math.random()*100+'vw';
+    img.style.animationDuration=(18+Math.random()*10)+'s';
+    img.style.animationDelay=Math.random()*5+'s';
+    img.style.width=(50+Math.random()*50)+'px';
+    bg.appendChild(img);
+  }
+}
+spawnFloating();
+</script>
+</body>
+</html>
